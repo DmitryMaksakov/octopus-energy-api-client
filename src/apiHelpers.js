@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const {format, subMonths, setDate, isSameDay, addDays} = require('date-fns');
+const {format, subMonths, setDate, isSameDay, addDays, isAfter} = require('date-fns');
 const { formatInTimeZone } = require('date-fns-tz');
 
 const ELECTRICITY = 'electricity';
@@ -175,7 +175,7 @@ function getBillingStartDate(billingDay) {
     const today = new Date();
 
     let billingStartDate = null;
-    if (today.getDate() < billingDay) {
+    if (today.getDate() <= billingDay) {
         billingStartDate = setDate(subMonths(today, 1), billingDay);
     } else {
         billingStartDate = setDate(today, billingDay);
@@ -204,7 +204,7 @@ function getElectricityConsumptionForBillingPeriod(readings, usageByDay, ratesDi
         result.kWh += usageByDay[formattedDate] || 0;
 
         d = addDays(d, 1);
-    } while (!isSameDay(d, today));
+    } while (!isSameDay(d, today) && !isAfter(d, today));
 
     return result;
 }
@@ -229,7 +229,7 @@ function getGasConsumptionForBillingPeriod(usageByDay, rate, standingCharge, m3T
         result.kWh += usageByDay[formattedDate] * m3ToKWh || 0;
 
         d = addDays(d, 1);
-    } while (!isSameDay(d, today));
+    } while (!isSameDay(d, today) && !isAfter(d, today));
 
     return result;
 }
