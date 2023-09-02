@@ -15,7 +15,7 @@ async function getMultiplePagesData(url, maxItems, token) {
     do {
         const response = await fetch(
             nextPageLink,
-            token ? {headers: {'authorization': 'Basic ' + Buffer.from(token).toString('base64')}} : null
+            token ? {headers: {'authorization': 'Basic ' + Buffer.from(token).toString('base64')}} : undefined
         );
 
         const data = await response.json();
@@ -261,7 +261,7 @@ async function getElectricityReport(token, productCode, tariffCode, mpan, serial
         const price = getElectricityPriceByDate(readings, rates, date);
 
         let billingPeriod = undefined;
-        if (options.billingPeriodDay) {
+        if (options && options.billingPeriodDay) {
             billingPeriod =
                 getElectricityConsumptionForBillingPeriod(
                     readings, usageByDay, rates, standingCharge, options.billingPeriodDay
@@ -269,7 +269,7 @@ async function getElectricityReport(token, productCode, tariffCode, mpan, serial
         }
 
         let bestConsumptionTimes = undefined;
-        if (options.usageIntervals) {
+        if (options && options.usageIntervals) {
             bestConsumptionTimes = {};
 
             options.usageIntervals.forEach(h => {
@@ -322,12 +322,12 @@ async function getGasReport(token, productCode, tariffCode, mpan, serialNumber, 
         const kWhAvg = getAverageConsumptionPerPeriod(usageByDay) * m3ToKwh;
 
         const standingCharge = await getStandingCharge(productCode, tariffCode, GAS);
-        const rate = await getGasRate();
+        const rate = await getGasRate(productCode, tariffCode);
 
         const price = kWh * rate;
 
         let billingPeriod = undefined;
-        if (options.billingPeriodDay) {
+        if (options && options.billingPeriodDay) {
             billingPeriod =
                 getGasConsumptionForBillingPeriod(usageByDay, rate, standingCharge, m3ToKwh, options.billingPeriodDay);
         }
