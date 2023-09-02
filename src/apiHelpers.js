@@ -168,8 +168,7 @@ function getBestConsumptionTime(ratesDict, date, hCount, startHour) {
 
 // Returns boolean value, checks if data on the specific date is available
 async function checkIfDataAvailable(token, mpan, serialNumber, energyType, date) {
-    const url = API_PREFIX + `/${energyType}-meter-points/${mpan}/meters/${serialNumber}/consumption/`;
-    const lastReading = await getReadings(token, url, 10);
+    const lastReading = await getReadings(token, mpan, serialNumber, energyType, 10);
 
     return lastReading.length > 4 && lastReading[3] && lastReading[3].interval_start.includes(date);
 }
