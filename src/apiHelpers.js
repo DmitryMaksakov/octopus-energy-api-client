@@ -8,12 +8,16 @@ const GAS = 'gas';
 const API_PREFIX = 'https://api.octopus.energy/v1';
 
 // Requests data pages one by one till maxItems was read
-async function getMultiplePagesData(url, maxItems) {
+async function getMultiplePagesData(url, maxItems, token) {
     let nextPageLink = url;
 
     let result = [];
     do {
-        const response = await fetch(nextPageLink);
+        const response = await fetch(
+            nextPageLink,
+            token ? {headers: {'authorization': 'Basic ' + Buffer.from(token).toString('base64')}} : null
+        );
+
         const data = await response.json();
 
         result = [...result, ...data.results];
@@ -63,9 +67,9 @@ async function getStandingCharge(productCode, tariffCode, energyType) {
 }
 
 // Returns meter readings
-async function getReadings(mpan, serialNumber, energyType, maxReadingsCount) {
-    const url = API_PREFIX + `https://api.octopus.energy/v1/${energyType}-meter-points/${mpan}/meters/${serialNumber}/consumption/`;
-    return await getMultiplePagesData(url, maxReadingsCount || 2 * 24 * 31)
+async function getReadings(token, mpan, serialNumber, energyType, maxReadingsCount) {
+    const url = API_PREFIX + `/${energyType}-meter-points/${mpan}/meters/${serialNumber}/consumption/`;
+    return await getMultiplePagesData(url, maxReadingsCount || 2 * 24 * 31, token)
 }
 
 // Returns Readings in form of dictionary [timestamp -> consumed energy]
@@ -163,9 +167,9 @@ function getBestConsumptionTime(ratesDict, date, hCount, startHour) {
 }
 
 // Returns boolean value, checks if data on the specific date is available
-async function checkIfDataAvailable(mpan, serialNumber, energyType, date) {
-    const url = API_PREFIX + `https://api.octopus.energy/v1/${energyType}-meter-points/${mpan}/meters/${serialNumber}/consumption/`;
-    const lastReading = await getReadings(url, 10);
+async function checkIfDataAvailable(token, mpan, serialNumber, energyType, date) {
+    const url = API_PREFIX + `/${energyType}-meter-points/${mpan}/meters/${serialNumber}/consumption/`;
+    const lastReading = await getReadings(token, url, 10);
 
     return lastReading.length > 4 && lastReading[3] && lastReading[3].interval_start.includes(date);
 }
@@ -235,10 +239,10 @@ function getGasConsumptionForBillingPeriod(usageByDay, rate, standingCharge, m3T
 }
 
 // Returns a full data set for Electricity for desired date
-async function getElectricityReport(productCode, tariffCode, mpan, serialNumber, date, options) {
+async function getElectricityReport(token, productCode, tariffCode, mpan, serialNumber, date, options) {
     try {
         const isReadingsAvailable =
-            await checkIfDataAvailable(mpan, serialNumber, ELECTRICITY, format(date, 'yyyy-MM-dd'));
+            await checkIfDataAvailable(token, mpan, serialNumber, ELECTRICITY, format(date, 'yyyy-MM-dd'));
 
         if (!isReadingsAvailable) {
             return {
@@ -246,7 +250,7 @@ async function getElectricityReport(productCode, tariffCode, mpan, serialNumber,
             }
         }
 
-        const readings = await getReadings(mpan, serialNumber, ELECTRICITY);
+        const readings = await getReadings(token, mpan, serialNumber, ELECTRICITY);
         const usageByDay = sumReadingsByDay(readings);
 
         const kWh = usageByDay[format(date, 'yyyy-MM-dd')];
@@ -301,10 +305,10 @@ async function getElectricityReport(productCode, tariffCode, mpan, serialNumber,
 }
 
 // Returns a full data set for Gas for desired date
-async function getGasReport(productCode, tariffCode, mpan, serialNumber, m3ToKwh, date, options) {
+async function getGasReport(token, productCode, tariffCode, mpan, serialNumber, m3ToKwh, date, options) {
     try {
         const isReadingsAvailable =
-            await checkIfDataAvailable(mpan, serialNumber, GAS, format(date, 'yyyy-MM-dd'));
+            await checkIfDataAvailable(token, mpan, serialNumber, GAS, format(date, 'yyyy-MM-dd'));
 
         if (!isReadingsAvailable) {
             return {
@@ -312,7 +316,7 @@ async function getGasReport(productCode, tariffCode, mpan, serialNumber, m3ToKwh
             }
         }
 
-        const readings = await getReadings(mpan, serialNumber, GAS);
+        const readings = await getReadings(token, mpan, serialNumber, GAS);
         const usageByDay = sumReadingsByDay(readings);
 
         const kWh = usageByDay[format(date, 'yyyy-MM-dd')] * m3ToKwh;

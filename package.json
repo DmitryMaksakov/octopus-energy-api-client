@@ -1,8 +1,9 @@
 {
   "name": "octopus-energy-api-client",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A set of methods to access Octopus Energy API",
   "author": "Dmitry Maksakov <maksakov0xff@gmail.com>",
+  "license": "MIT",
   "dependencies": {
     "node-fetch": "~2.6.7",
     "date-fns": "~2.30.0",
