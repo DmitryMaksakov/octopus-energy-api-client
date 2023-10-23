@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const {format, subMonths, setDate, isSameDay, addDays, isAfter} = require('date-fns');
+const {format, subMonths, setDate, isSameDay, addDays, isAfter, getDate, getDaysInMonth, getMonth} = require('date-fns');
 const { formatInTimeZone } = require('date-fns-tz');
 
 const ELECTRICITY = 'electricity';
@@ -209,6 +209,8 @@ function getElectricityConsumptionForBillingPeriod(readings, usageByDay, ratesDi
         d = addDays(d, 1);
     } while (!isSameDay(d, today) && !isAfter(d, today));
 
+    result.priceForecast = result.price / (getDate(d) - 1) * getDaysInMonth(getMonth(billingDay));
+
     return result;
 }
 
@@ -233,6 +235,8 @@ function getGasConsumptionForBillingPeriod(usageByDay, rate, standingCharge, m3T
 
         d = addDays(d, 1);
     } while (!isSameDay(d, today) && !isAfter(d, today));
+
+    result.priceForecast = result.price / (getDate(d) - 1) * getDaysInMonth(getMonth(billingDay));
 
     return result;
 }
