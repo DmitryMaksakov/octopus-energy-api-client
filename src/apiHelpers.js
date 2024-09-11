@@ -135,10 +135,10 @@ function getElectricityPriceByDate(readings, ratesDict, date) {
 function getBestConsumptionTime(ratesDict, date, hCount, startHour) {
     const costByTime = {};
 
-    for (let h = startHour || 0; h <= 23.5 - hCount; h += 0.5) {
+    for (let h = startHour || 0; h <= 23.5 - hCount / 2; h += 0.5) {
         costByTime[h] = 0;
 
-        for (let hd = 0; hd < hCount; hd += 0.5) {
+        for (let hd = 0; hd < hCount / 2; hd += 0.5) {
             const hi = h + hd;
 
             date.setHours(Math.trunc(hi));
