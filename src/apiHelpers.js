@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const {format, subMonths, setDate, isSameDay, addDays, isAfter, getDate, getDaysInMonth, getMonth} = require('date-fns');
+const {format, subMonths, setDate, isSameDay, addDays, isAfter, getDate, getDaysInMonth, getMonth, subDays} = require('date-fns');
 const { formatInTimeZone } = require('date-fns-tz');
 
 const ELECTRICITY = 'electricity';
@@ -68,7 +68,10 @@ async function getStandingCharge(productCode, tariffCode, energyType) {
 
 // Returns meter readings
 async function getReadings(token, mpan, serialNumber, energyType, maxReadingsCount) {
-    const url = API_PREFIX + `/${energyType}-meter-points/${mpan}/meters/${serialNumber}/consumption/`;
+    const date = format(subDays(new Date(), maxReadingsCount ? maxReadingsCount / (2 * 24) : 31), 'yyyy-MM-dd');
+    const url =
+        API_PREFIX +
+        `/${energyType}-meter-points/${mpan}/meters/${serialNumber}/consumption/?period_from=${date}`;
     return await getMultiplePagesData(url, maxReadingsCount || 2 * 24 * 31, token)
 }
 
