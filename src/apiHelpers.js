@@ -67,12 +67,12 @@ async function getStandingCharge(productCode, tariffCode, energyType) {
 }
 
 // Returns meter readings
-async function getReadings(token, mpan, serialNumber, energyType, maxReadingsCount) {
-    const date = format(subDays(new Date(), maxReadingsCount ? maxReadingsCount / (2 * 24) : 31), 'yyyy-MM-dd');
+async function getReadings(token, mpan, serialNumber, energyType, date) {
+    const defaultDate = format(subDays(new Date(),31), 'yyyy-MM-dd');
     const url =
         API_PREFIX +
-        `/${energyType}-meter-points/${mpan}/meters/${serialNumber}/consumption/?period_from=${date}`;
-    return await getMultiplePagesData(url, maxReadingsCount || 2 * 24 * 31, token)
+        `/${energyType}-meter-points/${mpan}/meters/${serialNumber}/consumption/?period_from=${date || defaultDate}`;
+    return await getMultiplePagesData(url, 2 * 24 * 31, token)
 }
 
 // Returns Readings in form of dictionary [timestamp -> consumed energy]
@@ -171,7 +171,7 @@ function getBestConsumptionTime(ratesDict, date, hCount, startHour) {
 
 // Returns boolean value, checks if data on the specific date is available
 async function checkIfDataAvailable(token, mpan, serialNumber, energyType, date) {
-    const lastReading = await getReadings(token, mpan, serialNumber, energyType, 10);
+    const lastReading = await getReadings(token, mpan, serialNumber, energyType, date);
 
     return lastReading.length > 4 && lastReading[3] && lastReading[3].interval_start.includes(date);
 }
